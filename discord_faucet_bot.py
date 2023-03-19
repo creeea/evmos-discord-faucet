@@ -193,7 +193,7 @@ async def on_message(message):
         # Handle the message here
         await bot.process_commands(message)
     else: 
-        logger.info("request came from {message.channel.name} but this bots only listens to {CHANNEL}")
+        logger.info(f"request came from {message.channel.name} but this bots only listens to {CHANNEL}")
 
 
 @bot.event

@@ -19,7 +19,7 @@ logging.basicConfig(stream=sys.stdout, level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 c = configparser.ConfigParser()
-c.read("config.ini", encoding='utf-8')
+c.read("config_testnet.ini", encoding='utf-8')
 
 load_dotenv()
 # Load data from config
@@ -81,7 +81,6 @@ async def async_request(session, url, data: str = ""):
     except Exception as err:
         return f'error: in async_request()\n{url} {err}'
 
-
 async def get_addr_evmos_balance(session, addr: str, denom: str):
     d = ""
     coins = {}
@@ -93,25 +92,6 @@ async def get_addr_evmos_balance(session, addr: str, denom: str):
             return 0
     except Exception as addr_balancer_err:
         logger.error("not able to query balance", d, addr_balancer_err)
-
-async def get_addr_all_balance(session, addr: str):
-    d = ""
-    coins = {}
-    try:
-        d = await async_request(session, url=f'{REST_PROVIDER}/cosmos/bank/v1beta1/balances/{addr}')
-        if "balances" in str(d):
-            for i in d["balances"]:
-                coins[i["denom"]] = i["amount"]
-                
-                if i["denom"] == "aevmos":
-                    coins["evmos"] = coins.pop(i["denom"])
-                    coins["evmos"] = await aevmos_to_evmos(i["amount"])
-
-            return coins
-        else:
-            return 0
-    except Exception as addr_balancer_err:
-        print("get_addr_balance", d, addr_balancer_err)
 
 async def get_address_info(session, addr: str):
     try:
@@ -161,7 +141,7 @@ async def send_tx(session, recipient: str, amount: int) -> str:
         )
 
         tx.set_fee(
-        denom="aevmos",
+        denom="atevmos",
         amount=GAS_PRICE
         )
 
@@ -186,12 +166,5 @@ async def send_tx(session, recipient: str, amount: int) -> str:
 async def aevmos_to_evmos(aevmos):
     aevmos_ = float(aevmos)
     amount_evmos = aevmos_/DECIMAL
-    logger.info(f"Converted {aevmos_} aEvmos to Evmos {amount_evmos}")
+    logger.info(f"Converted {aevmos_} atevmos to tevmos {amount_evmos}")
     return f'{amount_evmos}'
-
-# async def test():
-#     session = aiohttp.ClientSession()
-#     a = await send_tx(session, "evmos1u75yzpedd90wp0rqmxa6cz9qnwxa6g0ldp5k6l", "aevmos", "100")
-#     return ""
-
-# a = asyncio.run(test())

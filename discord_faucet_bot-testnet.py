@@ -7,7 +7,7 @@ import configparser
 import logging
 import datetime
 import sys
-import cosmos_api as api
+import cosmos_api_testnet as api
 import evmospy.pyevmosaddressconverter as converter
 import json
 import os
@@ -77,12 +77,12 @@ async def submit_tx_info(session, message, requester, txhash = ""):
                 amount_ = tx['tx']['body']['messages'][0]['amount'][0]['amount']
 
                 tx = f'🚀 - {requester}\n' \
-                    f'{await api.aevmos_to_evmos(amount_)} evmos successfully transfered to {to_}' \
+                    f'{await api.aevmos_to_evmos(amount_)} TESTNET Evmos successfully transfered to {to_}' \
                     '```' \
                     f'From:         {from_}\n' \
                     f'To (BECH32):  {to_}\n' \
                     f'To (HEX):     {converter.evmos_to_eth(to_)}\n' \
-                    f'Amount:       {await api.aevmos_to_evmos(amount_)} evmos ```' \
+                    f'Amount:       {await api.aevmos_to_evmos(amount_)} TESTNET Evmos ```' \
                     f'{EXPLORER_URL}/txs/{txhash}'
 
                 await message.channel.send(tx)
@@ -138,7 +138,8 @@ async def on_message(message):
         # Handle the message here
         await bot.process_commands(message)
     else: 
-        logger.info("request came from {message.channel.name} but this bots only listens to {CHANNEL}")
+        logger.info(f"request came from {message.channel.name} but this bots only listens to {CHANNEL}")
+        return
 
 @bot.event
 async def on_command_error(ctx, error):
@@ -146,7 +147,7 @@ async def on_command_error(ctx, error):
 		await ctx.send(
             f'{REJECT_EMOJI} - {ctx.author.mention}\n'
             f'You already executed the request command. As a security measure, users can only execute this command all {error.cooldown.per/60} minutes. \n'
-            f'Please retry in {round((error.retry_after/3600), 2)} minutes. In case of urgency, please reach out to the mods for dust.'
+            f'Please retry in {round((error.retry_after/60), 0)} minutes.'
             )
 
 @bot.command(name='balance')
@@ -161,8 +162,8 @@ async def balance(ctx):
         if float(amount) > 0:
             await ctx.channel.send(
                 f'⚖️ - {ctx.author.mention}\nYour current Evmos balance\n'
-                f'```{api.coins_dict_to_string({"evmos": amount}, "grid")}```\n'
-                f'To check your IBC token balance please open the block explorer: {EXPLORER_URL}/account/{address}')
+                f'```{api.coins_dict_to_string({"Tevmos": amount}, "grid")}```\n'
+                f'Additionally, you can check your token balance on the block explorer: {EXPLORER_URL}/account/{address}')
             await session.close()
 
         else:
