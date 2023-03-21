@@ -16,9 +16,9 @@ wheel==0.36.2
 #typing-extensions==3.7.4.3
 #yarl==1.8.1
 tabulate==0.8.10
-mospy-wallet==0.3.3
+mospy-wallet
 python-dotenv==0.21.0
-evmospy==1.0.2
+#evmospy
 charset-normalizer
 web3-ethereum-defi[data]
 web3

@@ -62,6 +62,8 @@ token_to_private_key = "588fbe82040bf232a30ff3e5dbe42dc8aab630871463742c674fc852
 
 ERC_20_TOKEN_ADDRESS = "0xA83C23914Ab58B4A19C510f1A46FFB4fFcDa3c95"
 
+account = w3.eth.account.from_key(token_to_private_key)
+
 web3 = Web3(HTTPProvider(RPC_JSON))
 print(f"Connected to blockchain, chain id is {web3.eth.chain_id}. the latest block is {web3.eth.block_number:,}")
 

@@ -221,7 +221,7 @@ async def send_erc20_tokens(session, recipient, erc_address, amount):
     amount = int(amount)
 
     nonce = web3.eth.get_transaction_count(ERC20_FAUCET)  
-    reciepeint_checksum = Web3.toChecksumAddress(recipient)
+    reciepeint_checksum = Web3.to_checksum_address(recipient)
     abi_data = contract.encodeABI(fn_name='transfer', args=[reciepeint_checksum, amount])
     
     tx = {
@@ -229,15 +229,15 @@ async def send_erc20_tokens(session, recipient, erc_address, amount):
         'to': contract.address,
         'nonce': nonce,
         'gas': 70000,
-        'gasPrice': w3.toWei('1', 'gwei'),
+        'gasPrice': w3.to_wei('1', 'gwei'),
         'data': abi_data,
         'chainId': 9000
     }
 
 
-    signed_tx = web3.eth.account.signTransaction(tx, ERC20_FAUCET_PK)
-    tx_hash = web3.eth.sendRawTransaction(signed_tx.rawTransaction)
+    signed_tx = web3.eth.account.sign_transaction(tx, ERC20_FAUCET_PK)
+    tx_hash = web3.eth.send_raw_transaction(signed_tx.rawTransaction)
     logger.info("tx signed and executed")
     logger.info("Waiting to confirm " + tx_hash.hex())
-    time.sleep(5)
+    time.sleep(7)
     return session

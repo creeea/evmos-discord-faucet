@@ -2,6 +2,7 @@
 venv/*
 .venv/*
 env/*
+.ven10/*
 __pycache__/cosmos_api.cpython-39.pyc
 .env
 __pycache__/cosmos_api.cpython-38.pyc
@@ -12,5 +13,7 @@ transactions.csv
 __pycache__/cosmos_api.cpython-310.pyc
 __pycache__/cosmos_api.cpython-310.pyc
 bin/evmosd
-__pycache__/cosmos_api_testnet.cpython-38.pyc
+__pycache__/*
 __pycache__/discord_faucet_bot_testnet.cpython-38.pyc
+__pycache__/cosmos_api_testnet.cpython-310.pyc
+web3-testnet.py
