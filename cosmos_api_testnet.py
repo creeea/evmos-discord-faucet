@@ -208,11 +208,11 @@ async def send_erc20_tokens(session, recipient, erc_address, amount):
     token_details = fetch_erc20_details(web3, erc_address)
     erc_20 = get_deployed_contract(web3, "ERC20MockDecimals.json", erc_address)
     balance = erc_20.functions.balanceOf(ERC20_FAUCET).call()
-    eth_balance = web3.eth.getBalance(ERC20_FAUCET)
+    #eth_balance = web3.eth.getBalance(ERC20_FAUCET)
 
     
     logger.info(f"Your balance is: {token_details.convert_to_decimals(balance)} {token_details.symbol}")
-    logger.info(f"Faucet has {eth_balance/(10**18)} TEVMOS for gas fees")
+    logger.info(f"Faucet has {balance/(10**18)} TEVMOS for gas fees")
     
     contract = web3.eth.contract(address=erc_address, abi=EIP20_ABI)
     

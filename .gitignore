@@ -12,3 +12,5 @@ transactions.csv
 __pycache__/cosmos_api.cpython-310.pyc
 __pycache__/cosmos_api.cpython-310.pyc
 bin/evmosd
+__pycache__/cosmos_api_testnet.cpython-38.pyc
+__pycache__/discord_faucet_bot_testnet.cpython-38.pyc
