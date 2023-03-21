@@ -4,25 +4,25 @@ import aiofiles as aiof
 import aiohttp
 import discord
 import configparser
-import logging
 import datetime
+import time
 import sys
 import cosmos_api_testnet as api
 import evmospy.pyevmosaddressconverter as converter
 import json
 import os
 from discord.ext import commands
+import discord_faucet_bot_testnet
 
 from dotenv import load_dotenv
 load_dotenv()
 
 # Turn Down Discord Logging
-disc_log = logging.getLogger('discord')
-disc_log.setLevel(logging.INFO)
+
 
 # Configure Logging
-logging.basicConfig(stream=sys.stdout, level=logging.INFO)
-logger = logging.getLogger(__name__)
+
+logger = api.get_logger()
 
 # Load config
 c = configparser.ConfigParser()
@@ -42,6 +42,14 @@ if EXPLORER_URL             != "":
 REQUEST_TIMEOUT             = int(c["FAUCET"]["request_timeout"])
 TOKEN                       = os.getenv("TOKEN")
 CHANNEL                     = str(c["FAUCET"]["channels_to_listen"])
+
+ERC20_AMOUNT_TO_SEND        = str(c["ERC20"]["erc20_token_to_send"])
+TOKENS_TO_SEND = {
+    'ETH': ["0x43bDe47a34801f6aB2d66016Aef723Ba1b3A62b3", 100000000000000000000, 18],
+    'USDC': ["0xBf6942D20D1460334B9b147199c4f03c97b70d02", 180000000, 6],   
+    'LFG': ["0xE7bbbEE8Fc04F93d5D07029754D2345684A9a28B", 800000000000000000000, 18],
+    'UP': ["0xA83C23914Ab58B4A19C510f1A46FFB4fFcDa3c95", 222000000000000000000, 18],    
+    }
 APPROVE_EMOJI = "✅"
 REJECT_EMOJI = "🚫"
 ACTIVE_REQUESTS = {}
@@ -124,7 +132,6 @@ async def requester_basic_requirements(session, ctx, address, amount):
             )
         return False
 
-
 @bot.event
 async def on_ready():
     logger.info(f'Logged in as {bot.user}')
@@ -162,7 +169,7 @@ async def balance(ctx):
         if float(amount) > 0:
             await ctx.channel.send(
                 f'⚖️ - {ctx.author.mention}\nYour current Evmos balance\n'
-                f'```{api.coins_dict_to_string({"Tevmos": amount}, "grid")}```\n'
+                f'```{api.coins_dict_to_string({"TEVMOS": amount}, "grid")}```\n'
                 f'Additionally, you can check your token balance on the block explorer: {EXPLORER_URL}/account/{address}')
             await session.close()
 
@@ -181,17 +188,16 @@ async def info(ctx):
 async def status(ctx):
     session = aiohttp.ClientSession()
     logger.info(f"status request by {ctx.author.name}")
+    balance = await api.get_addr_evmos_balance(session, FAUCET_ADDRESS, MAIN_DENOM )
     try:
         s = await api.get_node_status(session)
-        coins = await api.get_addr_all_balance(session, FAUCET_ADDRESS)
-
         if "node_info" in str(s) and "error" not in str(s):
             s = f'```' \
                         f'Moniker:       {s["result"]["node_info"]["moniker"]}\n' \
                         f'Address:       {FAUCET_ADDRESS}\n' \
                         f'OutOfSync:     {s["result"]["sync_info"]["catching_up"]}\n' \
-                        f'Last block:    {s["result"]["sync_info"]["latest_block_height"]}\n\n' \
-                        f'Faucet balance:\n{api.coins_dict_to_string(coins, "")}```'
+                        f'Last block:    {s["result"]["sync_info"]["latest_block_height"]}\n' \
+                        f'Faucet balance: {balance} {DENOMINATION_LST}```'
             await ctx.send(s)
             await session.close()
     except Exception as statusErr:
@@ -209,7 +215,7 @@ async def faucet_address(ctx):
         )         
         await session.close()
     except:
-        logging.error("Can't send message $faucet_address. Please report the incident to one of the mods.")
+        logger.error("Can't send message $faucet_address. Please report the incident to one of the mods.")
 
 @bot.command(name='tx_info')
 async def tx_info(ctx):
@@ -233,4 +239,59 @@ async def request(ctx):
     transaction = await api.send_tx(session, recipient=requester_address, amount=AMOUNT_TO_SEND)
     await eval_transaction (session, ctx, transaction)
 
+@commands.cooldown(1, REQUEST_TIMEOUT, commands.BucketType.user)
+@bot.command(name='forge')
+async def request(ctx):
+    session = aiohttp.ClientSession()
+    requester_address = str(ctx.message.content).replace("$forge", "").replace(" ", "").lower()
+
+    if requester_address.startswith("0x") and len(requester_address)== 42:
+        try:
+          await ctx.send(
+            f'Gm {ctx.author.mention} 🫡 \nI will send you a couple of ERC-20 tokens to test out Forge! Give me 20 seconds anon... \n\n' \
+            )         
+        except:
+            logger.error("Something is broken. Report this incident.")
+            await session.close()
+    else: 
+        await ctx.send(
+        f'Uh-oh, you are ngmi. ForgeDEX only works with Metamask. Submit a Metamask generated HEX address (e.g. 0x38d4819e935FF05B422820952BA0C993e84fC4B6)'
+        )         
+        await session.close()
+    try: 
+        #START FINAL REPLY
+        string_to_send = f"\n{ctx.author.mention} \nSent tokens to {requester_address}\n"
+        #TEVMOS
+        requester_address_bech32 = converter.eth_to_evmos(requester_address)
+        transaction = await api.send_tx(session, recipient=requester_address_bech32, amount=AMOUNT_TO_SEND)
+        if "'code': 0" not in str(transaction) and "hash" in str(transaction):
+            raise Exception("Couldn't send TEVMOS")
+        amount = int(int(AMOUNT_TO_SEND) / 10**18)
+        partial_response = f"💧 {amount} TEVMOS [native]\n"
+        string_to_send += partial_response
+        logger.info("TEVMOS sent. Waiting to confirm...")
+        #TOKENS
+        for t in TOKENS_TO_SEND:
+            token_data = TOKENS_TO_SEND[t]
+            decimals = token_data[2]
+            address = token_data[0]
+            amount = int(token_data[1] / 10**decimals)
+            partial_response = f"💧 {amount} {t} tokens [{address}]\n"
+            string_to_send += partial_response
+            session = await api.send_erc20_tokens(session, requester_address, address , token_data[1])
+
+    
+        end_string = "\nTrade your assets on https://forge.trade [TESTNET ONLY] 🔥"
+        string_to_send += end_string
+        await ctx.send(
+        string_to_send
+        )         
+        await session.close()
+    except Exception as e: 
+        await ctx.send(
+        f'Uh-oh, you are ngmi. Something went wrong. Try again.\n' \
+        f'Err log: {e}'
+        )
+        logger.error(f"couldn't send tokens {e}")
+        await session.close()
 bot.run(TOKEN)
