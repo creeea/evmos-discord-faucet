@@ -6,7 +6,7 @@ Please read **all** the available commands carefully.
 **1. Request Evmos from the faucet for transfer or swap activities**
 `$request evmos14q8vu02v3npvnrxkt7te05tx6ral53rx4hh80f`
 
-**2. Request Evmos + ERC20 Tokens to trade on https://forge.trade** [ONLY METAMASK]
+**2. Request Evmos + ERC20 Tokens to trade on https://testnet.forge.trade** [ONLY METAMASK]
 `$forge 0x0286fFC971136854cccCb6Bbb4B5AD023C43bf48`
 
 **3. Displays the current status of the node where faucet is running**

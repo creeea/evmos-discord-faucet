@@ -248,7 +248,7 @@ async def request(ctx):
     if requester_address.startswith("0x") and len(requester_address)== 42:
         try:
           await ctx.send(
-            f'Gm {ctx.author.mention} 🫡 \nI will send you a couple of ERC-20 tokens to test out Forge! Give me 20 seconds anon... \n\n' \
+            f'Gm {ctx.author.mention} 🫡 \nI will send you a couple of ERC-20 tokens to test out Forge! Give me 30 seconds. I have to do multiple transactions... \n\n' \
             )         
         except:
             logger.error("Something is broken. Report this incident.")
@@ -281,7 +281,7 @@ async def request(ctx):
             session = await api.send_erc20_tokens(session, requester_address, address , token_data[1])
 
     
-        end_string = "\nTrade your assets on https://forge.trade [TESTNET ONLY] 🔥"
+        end_string = "\nTrade your assets on https://testnet.forge.trade [TESTNET ONLY] 🔥"
         string_to_send += end_string
         await ctx.send(
         string_to_send
